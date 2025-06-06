@@ -1,0 +1,6 @@
+@ShortN_HostAddress = http://localhost:5231
+
+GET {{ShortN_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
