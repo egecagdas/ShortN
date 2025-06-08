@@ -78,7 +78,3 @@ A simple URL shortener service built with ASP.NET Core and Entity Framework Core
 ```powershell
 dotnet test
 ```
-
----
-
-Feel free to open issues or contribute! 
