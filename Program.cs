@@ -6,8 +6,14 @@ using ShortN.Services;
 using FluentValidation;
 using ShortN.Validators;
 using ShortN.Models;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -42,6 +48,23 @@ if (app.Environment.IsDevelopment())
     });
     app.MapOpenApi();
 }
+
+// Add logging middleware
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Request started: {Method} {Path}", context.Request.Method, context.Request.Path);
+    
+    try
+    {
+        await next();
+    }
+    finally
+    {
+        logger.LogInformation("Request completed: {Method} {Path} with status code {StatusCode}", 
+            context.Request.Method, context.Request.Path, context.Response.StatusCode);
+    }
+});
 
 app.UseHttpsRedirection();
 
