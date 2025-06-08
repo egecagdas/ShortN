@@ -135,4 +135,21 @@ public class UrlShortenerService : IUrlShortenerService
         _logger.LogDebug("Retrieved {Count} URL entries", entries.Count);
         return entries;
     }
+
+    public async Task<Boolean> UpdateUrlEntry(UrlEntry entry)
+    {
+        _logger.LogInformation("Attempting to update URL entry: {ShortCode}", entry.ShortCode);
+        try
+        {
+            _context.UrlEntries.Update(entry);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully updated URL entry: {ShortCode}", entry.ShortCode);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update URL entry: {ShortCode}", entry.ShortCode);
+            return false;
+        }
+    }
 }

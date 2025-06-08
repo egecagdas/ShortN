@@ -19,4 +19,6 @@ public interface IUrlShortenerService
     Task<Boolean> DoesLongUrlExistAsync(string longUrl);
 
     Task<List<UrlEntry>> GetUrlEntries();
+
+    Task<Boolean> UpdateUrlEntry(UrlEntry entry);
 }

@@ -37,7 +37,7 @@ public static class URLRoutes
         .Produces(StatusCodes.Status307TemporaryRedirect)
         .Produces(StatusCodes.Status404NotFound);
 
-        app.MapDelete("/{shortCode}", async (string shortCode, IUrlShortenerService urlShortenerService, ILogger<Program> logger) =>
+        app.MapDelete("/urls/{shortCode}", async (string shortCode, IUrlShortenerService urlShortenerService, ILogger<Program> logger) =>
         {
             logger.LogInformation("Attempting to delete short code: {ShortCode}", shortCode);
             var urlEntry = await urlShortenerService.GetUrlEntryByShortCodeAsync(shortCode);
@@ -59,9 +59,10 @@ public static class URLRoutes
         .WithName("DeleteUrl")
         .WithTags("URL Shortener")
         .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status404NotFound);
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status500InternalServerError);
 
-        app.MapPost("/new", async (IUrlShortenerService urlShortenerService, IValidator<UrlRequest> validator, [FromBody] UrlRequest request, ILogger<Program> logger) =>
+        app.MapPost("/urls", async (IUrlShortenerService urlShortenerService, IValidator<UrlRequest> validator, [FromBody] UrlRequest request, ILogger<Program> logger) =>
         {
             logger.LogInformation("Creating new URL entry for: {LongUrl}", request.LongUrl);
             var validationResult = await validator.ValidateAsync(request);
@@ -110,5 +111,87 @@ public static class URLRoutes
         .WithName("GetAllUrls")
         .WithTags("URL Shortener")
         .Produces<List<UrlEntry>>(StatusCodes.Status200OK);
+
+        app.MapGet("/urls/{shortCode}", async (string shortCode, IUrlShortenerService urlShortenerService, ILogger<Program> logger) =>
+        {
+            logger.LogInformation("Retrieving URL entry for short code: {ShortCode}", shortCode);
+            var urlEntry = await urlShortenerService.GetUrlEntryByShortCodeAsync(shortCode);
+            
+            if (urlEntry is null)
+            {
+                logger.LogWarning("Short code not found: {ShortCode}", shortCode);
+                return Results.NotFound();
+            }
+            
+            if (urlEntry.ExpiresAt is not null && DateTime.Compare(DateTime.Now, urlEntry.ExpiresAt.Value) > 0)
+            {
+                logger.LogWarning("Short code expired: {ShortCode}", shortCode);
+                return Results.Problem(
+                    statusCode: 410,
+                    title: "This short link has expired."
+                );
+            }
+
+            logger.LogInformation("Retrieved URL entry for short code: {ShortCode}", shortCode);
+            return Results.Ok(urlEntry);
+        })
+        .WithName("GetUrlEntry")
+        .WithTags("URL Shortener")
+        .Produces<UrlEntry>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status410Gone);
+
+        app.MapPut("/urls/{shortCode}", async (string shortCode, IUrlShortenerService urlShortenerService, IValidator<UrlUpdateRequest> validator, [FromBody] UrlUpdateRequest request, ILogger<Program> logger) =>
+        {
+            logger.LogInformation("Attempting to update URL entry for short code: {ShortCode}", shortCode);
+            
+            var validationResult = await validator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                logger.LogWarning("Invalid URL update request: {Errors}", string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
+                return Results.BadRequest(validationResult.Errors);
+            }
+
+            var existingEntry = await urlShortenerService.GetUrlEntryByShortCodeAsync(shortCode);
+            if (existingEntry is null)
+            {
+                logger.LogWarning("Short code not found for update: {ShortCode}", shortCode);
+                return Results.NotFound();
+            }
+
+            if (existingEntry.ExpiresAt is not null && DateTime.Compare(DateTime.Now, existingEntry.ExpiresAt.Value) > 0)
+            {
+                logger.LogWarning("Cannot update expired short code: {ShortCode}", shortCode);
+                return Results.Problem(
+                    statusCode: 410,
+                    title: "Cannot update an expired short link."
+                );
+            }
+
+            // Update the existing entry
+            existingEntry.LongUrl = request.LongUrl;
+            if (request.Ttl.HasValue)
+            {
+                existingEntry.ExpiresAt = DateTime.UtcNow.AddSeconds(request.Ttl.Value);
+            }
+
+            if (await urlShortenerService.UpdateUrlEntry(existingEntry))
+            {
+                logger.LogInformation("Successfully updated URL entry for short code: {ShortCode}", shortCode);
+                return Results.Ok(existingEntry);
+            }
+            else
+            {
+                logger.LogError("Failed to update URL entry for short code: {ShortCode}", shortCode);
+                return Results.InternalServerError("Could not update URL Entry. Please try again.");
+            }
+        })
+        .WithName("UpdateUrl")
+        .WithTags("URL Shortener")
+        .Produces<UrlEntry>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status410Gone)
+        .Produces(StatusCodes.Status500InternalServerError);
     }
 }
