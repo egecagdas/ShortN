@@ -11,4 +11,4 @@ public class CustomCodeNotAvailableException : Exception
     public CustomCodeNotAvailableException() : base("The requested custom code is not available")
     {
     }
-} 
+}

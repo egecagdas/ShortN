@@ -18,13 +18,13 @@ public class UrlShortenerServiceTests
     public UrlShortenerServiceTests()
     {
         _loggerMock = new Mock<ILogger<UrlShortenerService>>();
-        
+
         // Setup in-memory database
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _context = new ApplicationDbContext(options);
-        
+
         _service = new UrlShortenerService(_context, _loggerMock.Object);
     }
 
@@ -69,7 +69,7 @@ public class UrlShortenerServiceTests
         await _service.CreateUrlEntryAsync(longUrl, customCode, null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<CustomCodeNotAvailableException>(() => 
+        await Assert.ThrowsAsync<CustomCodeNotAvailableException>(() =>
             _service.CreateUrlEntryAsync("https://another.com", customCode, null));
     }
 
@@ -172,4 +172,4 @@ public class UrlShortenerServiceTests
         // Assert
         Assert.True(result);
     }
-} 
+}

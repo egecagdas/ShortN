@@ -22,4 +22,4 @@ public class UrlRequestValidator : AbstractValidator<UrlRequest>
             .When(x => x.Ttl.HasValue)
             .WithMessage("TTL must be greater than 0");
     }
-} 
+}

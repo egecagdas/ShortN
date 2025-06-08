@@ -15,7 +15,7 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         modelBuilder.Entity<UrlEntry>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -33,4 +33,4 @@ public class ApplicationDbContext : DbContext
             optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=shortn;User Id=postgres;Password=egecagdas;");
         }
     }
-} 
+}

@@ -21,7 +21,8 @@ public static class URLRoutes
                 logger.LogWarning("Short code not found: {ShortCode}", shortCode);
                 return Results.NotFound();
             }
-            else if (urlEntry.ExpiresAt is not null && DateTime.Compare(DateTime.Now, urlEntry.ExpiresAt.Value) > 0){
+            else if (urlEntry.ExpiresAt is not null && DateTime.Compare(DateTime.Now, urlEntry.ExpiresAt.Value) > 0)
+            {
                 logger.LogWarning("Short code expired: {ShortCode}", shortCode);
                 return Results.Problem(
                     statusCode: 410,
@@ -47,11 +48,13 @@ public static class URLRoutes
                 return Results.NotFound();
             }
 
-            if(await urlShortenerService.DeleteUrlEntry(urlEntry)){
+            if (await urlShortenerService.DeleteUrlEntry(urlEntry))
+            {
                 logger.LogInformation("Successfully deleted short code: {ShortCode}", shortCode);
                 return Results.NoContent();
             }
-            else {
+            else
+            {
                 logger.LogError("Failed to delete short code: {ShortCode}", shortCode);
                 return Results.InternalServerError("Could not delete URL Entry. Please try again.");
             }
@@ -116,13 +119,13 @@ public static class URLRoutes
         {
             logger.LogInformation("Retrieving URL entry for short code: {ShortCode}", shortCode);
             var urlEntry = await urlShortenerService.GetUrlEntryByShortCodeAsync(shortCode);
-            
+
             if (urlEntry is null)
             {
                 logger.LogWarning("Short code not found: {ShortCode}", shortCode);
                 return Results.NotFound();
             }
-            
+
             if (urlEntry.ExpiresAt is not null && DateTime.Compare(DateTime.Now, urlEntry.ExpiresAt.Value) > 0)
             {
                 logger.LogWarning("Short code expired: {ShortCode}", shortCode);
@@ -144,7 +147,7 @@ public static class URLRoutes
         app.MapPut("/urls/{shortCode}", async (string shortCode, IUrlShortenerService urlShortenerService, IValidator<UrlUpdateRequest> validator, [FromBody] UrlUpdateRequest request, ILogger<Program> logger) =>
         {
             logger.LogInformation("Attempting to update URL entry for short code: {ShortCode}", shortCode);
-            
+
             var validationResult = await validator.ValidateAsync(request);
             if (!validationResult.IsValid)
             {

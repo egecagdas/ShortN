@@ -54,14 +54,14 @@ app.Use(async (context, next) =>
 {
     var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("Request started: {Method} {Path}", context.Request.Method, context.Request.Path);
-    
+
     try
     {
         await next();
     }
     finally
     {
-        logger.LogInformation("Request completed: {Method} {Path} with status code {StatusCode}", 
+        logger.LogInformation("Request completed: {Method} {Path} with status code {StatusCode}",
             context.Request.Method, context.Request.Path, context.Response.StatusCode);
     }
 });

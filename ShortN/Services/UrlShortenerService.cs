@@ -52,7 +52,7 @@ public class UrlShortenerService : IUrlShortenerService
 
     public async Task<UrlEntry> CreateUrlEntryAsync(string longUrl, string? customCode, int? ttl)
     {
-        _logger.LogInformation("Creating new URL entry for {LongUrl} with custom code: {CustomCode}, TTL: {Ttl}", 
+        _logger.LogInformation("Creating new URL entry for {LongUrl} with custom code: {CustomCode}, TTL: {Ttl}",
             longUrl, customCode ?? "none", ttl ?? 0);
 
         Boolean _IsCustomCode = false;
@@ -62,7 +62,7 @@ public class UrlShortenerService : IUrlShortenerService
         {
             shortCode = GenerateShortCode();
         }
-        else 
+        else
         {
             if (await DoesShortCodeExistAsync(customCode))
             {
@@ -79,12 +79,12 @@ public class UrlShortenerService : IUrlShortenerService
             shortCode = GenerateShortCode();
         }
 
-        var urlEntry = new UrlEntry 
-        { 
-            LongUrl = longUrl, 
-            ShortCode = shortCode, 
-            CreatedAt = DateTime.UtcNow, 
-            IsCustomCode = _IsCustomCode 
+        var urlEntry = new UrlEntry
+        {
+            LongUrl = longUrl,
+            ShortCode = shortCode,
+            CreatedAt = DateTime.UtcNow,
+            IsCustomCode = _IsCustomCode
         };
 
         if (ttl is not null && ttl != 0)
@@ -92,7 +92,7 @@ public class UrlShortenerService : IUrlShortenerService
             urlEntry.ExpiresAt = urlEntry.CreatedAt.AddMinutes((double)ttl);
             _logger.LogDebug("Set expiration time to: {ExpiresAt}", urlEntry.ExpiresAt);
         }
-        
+
         _context.UrlEntries.Add(urlEntry);
         await _context.SaveChangesAsync();
         _logger.LogInformation("Successfully created URL entry: {ShortCode} -> {LongUrl}", shortCode, longUrl);
