@@ -23,7 +23,10 @@ public static class URLRoutes
             }
             else if (urlEntry.ExpiresAt is not null && DateTime.Compare(DateTime.Now, urlEntry.ExpiresAt.Value) > 0){
                 logger.LogWarning("Short code expired: {ShortCode}", shortCode);
-                return Results.NotFound("This short link has expired.");
+                return Results.Problem(
+                    statusCode: 410,
+                    title: "This short link has expired."
+                );
             }
 
             logger.LogInformation("Redirecting {ShortCode} to {LongUrl}", shortCode, urlEntry.LongUrl);
