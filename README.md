@@ -18,7 +18,7 @@ A simple URL shortener service built with ASP.NET Core and Entity Framework Core
 1. **Clone the repository:**
    ```powershell
    git clone https://github.com/egecagdas/ShortN
-   cd ShortN_repo
+   cd ShortN
    ```
 
 2. **Restore dependencies:**
